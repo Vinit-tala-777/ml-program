@@ -1,0 +1,93 @@
+package com.example.assignment2
+
+import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.math.log
+
+class MainActivity : AppCompatActivity() {
+
+
+    lateinit var DB : SQLiteDatabase
+    lateinit var qry : String
+    lateinit var curser : Cursor
+
+    var tablename="tbl_stud"
+    var createtable="create table if not exists $tablename(sid number,sname text(30))"
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+
+        try {
+            DB = openOrCreateDatabase("mydb.db", Context.MODE_PRIVATE, null)
+            Log.i("mydb", "database created")
+
+            displaymsg("database created")
+
+            DB.execSQL(createtable)
+            displaymsg("table created")
+            displayrecords()
+
+            btninsert.setOnClickListener {
+                var sid = eid.text.toString().toInt()
+                var sname = ename.text.toString()
+
+                qry = "insert into $tablename values($sid,'$sname')"
+                DB.execSQL(qry)
+                displaymsg("record inserted")
+                displayrecords()
+            }
+
+            btnupdate.setOnClickListener {
+
+                var sid = eid.text.toString().toInt()
+                var sname = ename.text.toString()
+
+                qry = "update $tablename set sname='$sname' where sid=$sid"
+                DB.execSQL(qry)
+                displaymsg("reccord updated")
+                displayrecords()
+            }
+
+            btndelete.setOnClickListener {
+                var sid = eid.text.toString().toInt()
+                qry = "delete from $tablename  where sid=$sid"
+                DB.execSQL(qry)
+                displaymsg("reccord updated")
+                displayrecords()
+            }
+        }
+        catch (e: Exception) {
+            displaymsg(e.toString())
+        }
+
+
+    }
+            fun displayrecords()
+            {
+                qry="select * from $tablename"
+                curser = DB.rawQuery(qry,null)
+                tv.text=""
+                while (curser.moveToNext())
+                {
+                    val sid = curser.getInt(0)
+                    val sname = curser.getString(1)
+                    tv.append("$sid | $sname  \n")
+                }
+                curser.close()
+            }
+
+        fun displaymsg(msg:String)
+        {
+
+            Toast.makeText(this,msg,Toast.LENGTH_LONG).show()
+        }
+    }
